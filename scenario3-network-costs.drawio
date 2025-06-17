@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0" version="27.1.4">
   <diagram name="Seite-1" id="C0ghvE-4qZL3EzDajxP_">
-    <mxGraphModel dx="2739" dy="720" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1637" dy="717" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -288,6 +288,36 @@
         </mxCell>
         <mxCell id="krYM3cxRlhCQfFP8GPMY-26" value="&lt;font face=&quot;Lucida Console&quot;&gt;5.&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
           <mxGeometry x="520" y="408" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="krYM3cxRlhCQfFP8GPMY-28" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="-124" y="735" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="krYM3cxRlhCQfFP8GPMY-29" value="&lt;font face=&quot;Lucida Console&quot;&gt;1.&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="-140" y="730" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="krYM3cxRlhCQfFP8GPMY-30" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="-129" y="615" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="krYM3cxRlhCQfFP8GPMY-31" value="&lt;font face=&quot;Lucida Console&quot;&gt;2.&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="-145" y="610" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="krYM3cxRlhCQfFP8GPMY-32" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="-129" y="529" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="krYM3cxRlhCQfFP8GPMY-33" value="&lt;font face=&quot;Lucida Console&quot;&gt;3.&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="-145" y="524" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="krYM3cxRlhCQfFP8GPMY-34" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="-129" y="468" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="krYM3cxRlhCQfFP8GPMY-35" value="&lt;font face=&quot;Lucida Console&quot;&gt;4.&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="-145" y="463" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="krYM3cxRlhCQfFP8GPMY-36" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="-128" y="405" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="krYM3cxRlhCQfFP8GPMY-37" value="&lt;font face=&quot;Lucida Console&quot;&gt;5.&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="-144" y="400" width="60" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
