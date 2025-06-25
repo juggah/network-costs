@@ -15,9 +15,9 @@ td {
 - [Concept: How does Azure meter network incurred costs](#concept-how-does-azure-meter-network-incurred-costs)
   - [Bandwidth](#bandwidth)
   - [Virtual Network](#virtual-network)
-      - [Express Route](#express-route)
-      - [Firewall](#firewall)
-      - [Virtual WAN](#virtual-wan)
+  - [Express Route](#express-route)
+  - [Firewall](#firewall)
+  - [Virtual WAN](#virtual-wan)
 
 - [Billing Scenarios](#billing-scenarios)
   - [VM / AKS / VNET enabled service to Internet](#vm-internet)
@@ -25,7 +25,7 @@ td {
 
 - [Conclusion](#conclusion)
 
-- [How to access cost management in Azure](#how-to-access-cost-management-in-azure)
+- [Annex - How to access cost management in Azure](#how-to-access-cost-management-in-azure)
   - GUI
   - Cost Management API
   - AZ CLI
@@ -33,7 +33,7 @@ td {
 
 # Introduction 
 
-Cost Management in Azure can be a straight forward topic. There maybe a resource with a fixed cost billed for the resource instance and some dynamic cost component which occurs based on the usage.
+Cost Management in Azure can be a straight forward topic. Assuming there is  a resource with a fixed cost billed for the resource instance and some dynamic cost component which occurs based on the usage.
 
 When it comes to network costs the situation gets confusing. Data transfer over the network is included in nearly all Azure operations. But not all  traffic is billed.
 
@@ -59,7 +59,9 @@ Network transfer costs arise whereever your traffic traverses parts of the azure
 In the subsequent chapters scenarios are described that shall help to identify when
 which type of network related costs are triggered.
 
-https://learn.microsoft.com/en-us/azure/virtual-wan/pricing-concepts
+Microsoft published a network pricing   overview which is based on a virtualWan enabled network  <a href="https://learn.microsoft.com/en-us/azure/virtual-wan/pricing-concepts">here</a>.
+
+
 
 ## Service Bandwidth
 
@@ -83,7 +85,7 @@ The service name "Bandwidth" consists of following meter subcategories
 
 ## Service Virtual Network
 
-Do not confuse the service "Virtual Network" with the resource Virtual Network. The costs for the service virtual network are assigned to each resource that generate them.
+⚠️ Do not confuse the service "Virtual Network" with the resource Virtual Network. The costs for the service virtual network are assigned to each resource that generate them. (VMs, VM Scale Sets, AKS)
 
 Virtual Networks are free so you will never find them in your cost analysis. All network related costs are assigned to the resources and services that generate them.
 
@@ -110,29 +112,35 @@ Note: A private endpoint allows a Platform-as-a-Service (PaaS) resource to be ac
 
 Meter Subcategory
 
-In this article we will use a sku standard, metered  Express Route which has costs of the following subcategories:
+In this article we assume a metered Express Route of sku standard, which has costs of the following subcategories:
 
 * Standard Metered Data  - Fixed costs for the Express Route provisioning / month
 * Metered Data - Data Transfer Out - Billed / GB
 * Data Transfer In - Usually Free
 
+## Service vWan, Firewall, Application Gateway, Loadbalancer
+
+These are all network related ressources which costs are 
+connected to the amount of traffic they process. No matter if its ingress or egress. 
 
 # Billing Scenarios
 
 ## VM to Internet over Azure Firewall
 
+A VM accesses a service that is provided by the internet.
+
 # ![scenario1](scenario1-network-costs.drawio.png)
 
 (1)
 A VM generates Traffic (In this example 1TB of traffic is sent) The traffic is routed via the virtual network peering
-to the firewall in which the vNet resides.
+to the vNet in which the firewall resides.
 
-(Important) In this scenario the traffic is routed via the existing vNet Peering. (Not via the vWWan Hub in this scenario)
-(2) (3)
-Then it enters the vNet of the Firewall (2) and the data is processed (3)
+(Important) In this scenario the traffic is routed via the existing vNet Peering (the red line). It is not routed via the vWWan Hub in this scenario.
+
+Then it enters the vNet (2) and the data is processed by the firewall(3)
 
 (4)
-The Firewall then sends the traffic to the internet via the Microsoft Global Network Routing Preference in this case (4)
+The traffic egresses to the internet via the firewall by traversing the Microsoft Global Network  in this case (Routing Preference: MGN) 
 
 Cost breakdown for this scenario #1
 
@@ -141,17 +149,17 @@ Cost breakdown for this scenario #1
 1.| 18,00 € | VNET Peering Egress
 2.| 18,00 € | VNET Peering Ingress
 3.| 14,40 € | Firewall Data Processed
-4.| 68,81 € | Bandwidth Internet Egress 
+4.| 68,81 € | Bandwidth Internet Egress "Rtn Preference: MGN"
 -- | **119,21** | Total Cost for 1TB (1024 GB)
 
 ## VM to a private endpoint enabled PaaS
 
-A VM accesses a private endpoint enabled storage account (can be any private endpoint enabled service like DB, cache).
+A VM accesses a private endpoint enabled storage account (can be any private endpoint enabled service like data base, key vault, cache, etc.).
 
 # ![scenario2](scenario2-network-costs.drawio.png)
 
 (1)
-The traffic is routed through the vHub vNet Link Peering to the vHub.
+The traffic is routed through the vHub vNet-Link  to the vHub.
 (2)
 The vHub processes (routes) the traffic.
 (3) 
@@ -172,18 +180,19 @@ Cost Breakdown for Scenario #2
 
 ## On-Premises VM to an Azure VM that is in the backend pool of a load balancer in another region
 
+A VM on premises accesses a service through  an ExpressRoute that  is behind a load balancer. 
+
 # ![scenario3](scenario3-network-costs.drawio.png)
 
-A VM on premises accesses a service through  an exppress route that  is behind a load balancer. 
 
 (1) Traffic entering Azure through the express Route is not billed.
 
-Note: It is likely though that the ISP provising the link for the Express Route will charge traffic fees.
+Note: It is likely though that the ISP provising the link for the ExpressRoute will charge traffic fees.
 
 (2)
 The traffic is then routed through the regional vHub where it gets processed which incurs costs.
 
-(3) The traffic is routed to the vWan Hub in the destination refion through the microsoft 
+(3) The traffic is routed to the vWan Hub in the destination region through the microsoft 
 backbone which is billed accordingly.
 
 (4)
@@ -201,3 +210,41 @@ loadbalancing rules which generates costs.
 4.| 9,06 € | vNet Link Peering Ingress
 5.|  4,53 € | LB, SKU Standard Data Processed
 -- | **49,74** | Total Cost for 1TB (1024 GB)
+
+## Conclusion
+
+It makes sense to evaluate different network designs with a focus on costs. 
+
+🔄 It might be feasible to place  components that are needed to offer one service (eg, frontend vm, database , application gateway)  in one vnet. There will be significantly less network induced costs than when they are all distributed in different vNets or even regions.
+
+
+🔄 The use of a virtual WAN can reduce costs as it combines a hub and spoke architecture with a full mesh. 
+Since it has a centralized management it can reduce the complexity and amount of resources deployed in order to maintain such a design manually.
+
+Minimize Data Transfer Costs:
+
+✅ Keep resources within the same region to avoid data transfer fees.
+
+✅ Monitor network traffic and the processing load of network related ressources.
+
+❌  Do not overprovision infrastrucutre components as virtual wan hubs, express routes or application gateways.
+
+## Annex
+
+AZ CLI billing / consumption & reservations
+https://learn.microsoft.com/en-us/cli/azure/service-page/cost%20management?view=azure-cli-latest
+
+Powershell costmanagement, billing and reservations module
+
+https://learn.microsoft.com/en-us/powershell/module/az.billing/?view=azps-14.1.0
+
+https://learn.microsoft.com/en-us/powershell/module/az.costmanagement/?view=azps-14.1.0#cost-management
+
+
+https://learn.microsoft.com/en-us/powershell/module/az.reservations/?view=azps-14.1.0
+
+Azure REST APIs for Cost Management, Billing and Consumption
+
+https://learn.microsoft.com/en-us/rest/api/cost-management/
+https://learn.microsoft.com/en-us/rest/api/billing/
+https://learn.microsoft.com/en-us/rest/api/consumption/
