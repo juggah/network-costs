@@ -25,11 +25,11 @@ td {
 
 - [Conclusion](#conclusion)
 
-- [Annex - How to access cost management in Azure](#how-to-access-cost-management-in-azure)
-  - GUI
-  - Cost Management API
-  - AZ CLI
-  - Powershell
+- [Annex - Further documentation on cost management in azure](#annex)
+  - General introduction to cost management in the azure portal
+  - Cost management API(#api)
+  - Az cli cost management(#az-cli)
+  - Powershell cost management(#powershell)
 
 # Introduction 
 
@@ -39,7 +39,7 @@ When it comes to network costs the situation gets confusing. Data transfer over 
 
 When you skim the documentation for this topic it is mostly pointed out that incoming traffic is free and Azure outgoing traffic costs 0.036 €/GB (at the time of creation) with 100GB free monthly.
 
-Unfortunately it gets way more complex once you look into the details. This blog article shall make some of the details easier to understand. 
+Unfortunately it gets way more complex once you look into the details. This blog article shall make some of the details easier to understand by calculating cost examples using sample scenarios. 
 
 # Scope
 
@@ -146,11 +146,14 @@ Cost breakdown for this scenario #1
 
 |Waypoint | Amount billed| Cost descrtiption
 ------------|-----------|-------|
-1.| 18,00 € | VNET Peering Egress
-2.| 18,00 € | VNET Peering Ingress
+1.| 18,12 € | VNET Peering Egress
+2.| 18,012 € | VNET Peering Ingress
 3.| 14,40 € | Firewall Data Processed
-4.| 68,81 € | Bandwidth Internet Egress "Rtn Preference: MGN"
--- | **119,21** | Total Cost for 1TB (1024 GB)
+4.| 69,28 € | Bandwidth Internet Egress "Rtn Preference: MGN"
+-- | **120,02** | Total Cost for 1TB (1024 GB)
+
+Find the scenario in the azure cost calculator here:
+https://azure.com/e/1b9ed1a4c96e42289291a7294144b27a
 
 ## VM to a private endpoint enabled PaaS
 
@@ -171,16 +174,17 @@ Cost Breakdown for Scenario #2
 
 |Waypoint | Amount billed| Cost description
 ------------|-----------|-------|
-1.| 9,06 € | vNet Link Peering Egress / Ingress
+1.| 18,12 € | vNet Link Peering Egress 
 2.| 18,12 € | vHub Processing
-3.| 9,06 € | vNet Link Peering Ingress / Egress
-4.|  8,85 € | private Endpoint processing costs (outbound/inbound) 
--- | **63,21** | Total Cost for 1TB (1024 GB)
+3.| 18,12 € | vNet Link Peering Ingress
+4.| 9,06 € | private Endpoint processing costs (inbound) 
+-- | **63,42** | Total Cost for 1TB (1024 GB)
 
+https://azure.com/e/320ede77328a46f0a0c5c3ac19c1a350
 
 ## On-Premises VM to an Azure VM that is in the backend pool of a load balancer in another region
 
-A VM on premises accesses a service through  an ExpressRoute that  is behind a load balancer. 
+A VM on premises accesses a service that  is provided by VMs that are behind a  loadbalancer in azure. The on premises DC is connected with an express route.
 
 # ![scenario3](scenario3-network-costs.drawio.png)
 
@@ -198,7 +202,7 @@ backbone which is billed accordingly.
 (4)
 The ingressing traffic is billed again in the destination vNet in which the lb and the vm reside.
 
-(5) finally the standard loadbalancer will process the traffic accoring to the configured
+(5) finally the standard loadbalancer will process the traffic according to the configured
 loadbalancing rules which generates costs.
 
 
@@ -209,39 +213,40 @@ loadbalancing rules which generates costs.
 3.| 18,03 € | Bandwidth Inter Region, Intra Continent Data Transfer Out
 4.| 9,06 € | vNet Link Peering Ingress
 5.|  4,53 € | LB, SKU Standard Data Processed
--- | **49,74** | Total Cost for 1TB (1024 GB)
+-- | **49,74** | Total Cost for 1TB 
 
 ## Conclusion
 
-It makes sense to evaluate different network designs with a focus on costs. 
-
-🔄 It might be feasible to place  components that are needed to offer one service (eg, frontend vm, database , application gateway)  in one vnet. There will be significantly less network induced costs than when they are all distributed in different vNets or even regions.
+🔄 Place components that are needed to provide a service (e.g. frontend application gateway, vm, database)  in one vNet. There will be significantly less network induced costs than when they are all distributed in different vNets or even regions.
 
 
 🔄 The use of a virtual WAN can reduce costs as it combines a hub and spoke architecture with a full mesh. 
 Since it has a centralized management it can reduce the complexity and amount of resources deployed in order to maintain such a design manually.
 
+-> 🔄 It makes sense to evaluate different network designs with a focus on costs. 
+
 Minimize Data Transfer Costs:
 
-✅ Keep resources within the same region to avoid data transfer fees.
+✅ Keep resources within the same region to avoid  supra-regional or even intercontinental data transfer fees.
 
-✅ Monitor network traffic and the processing load of network related ressources.
+✅ Monitor network traffic and the processing load of network related ressources. Use this data to adjust sizing of your core network components.
 
-❌  Do not overprovision infrastrucutre components as virtual wan hubs, express routes or application gateways.
+⚠️  Do not overprovision infrastructure components as virtual wan hubs, express routes or application gateways.
 
-## Annex
+💸 When Load testing your applications do  consider to not to route the traffic through your azure firewall each time. As it might be feasible to test the interplay of all components once it is
+most likely not required to route the load testing traffic through the firewall each time as it can generate significant costs.
 
-AZ CLI billing / consumption & reservations
+## Annex 
+https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/overview-cost-management
+
+Azure CLI billing / consumption & reservations
 https://learn.microsoft.com/en-us/cli/azure/service-page/cost%20management?view=azure-cli-latest
 
 Powershell costmanagement, billing and reservations module
 
-https://learn.microsoft.com/en-us/powershell/module/az.billing/?view=azps-14.1.0
-
-https://learn.microsoft.com/en-us/powershell/module/az.costmanagement/?view=azps-14.1.0#cost-management
-
-
-https://learn.microsoft.com/en-us/powershell/module/az.reservations/?view=azps-14.1.0
+https://learn.microsoft.com/en-us/powershell/module/az.billing/
+https://learn.microsoft.com/en-us/powershell/module/az.costmanagement/
+https://learn.microsoft.com/en-us/powershell/module/az.reservations/
 
 Azure REST APIs for Cost Management, Billing and Consumption
 
