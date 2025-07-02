@@ -13,11 +13,10 @@ td {
   - [Not in scope](#not-in-scope)
 
 - [Concept: How does Azure meter network incurred costs](#concept-how-does-azure-meter-network-incurred-costs)
-  - [Bandwidth](#bandwidth)
-  - [Virtual Network](#virtual-network)
-  - [Express Route](#express-route)
-  - [Firewall](#firewall)
-  - [Virtual WAN](#virtual-wan)
+  - [Bandwidth](#service-bandwidth)
+  - [Virtual Network](#service-virtual-network)
+  - [Express Route](#service-express-route)
+  - [Firewall, Application Gateway, Loadbalancers](#service-vwan-firewall-application-gateway-loadbalancer)
 
 - [Billing Scenarios](#billing-scenarios)
   - [VM / AKS / VNET enabled service to Internet](#vm-internet)
@@ -132,15 +131,23 @@ A VM accesses a service that is provided by the internet.
 # ![scenario1](scenario1-network-costs.drawio.png)
 
 (1)
-A VM generates Traffic (In this example 1TB of traffic is sent) The traffic is routed via the virtual network peering
+A VM generates Traffic (In this example 1 TB). The traffic is routed via the virtual network peering
 to the vNet in which the firewall resides.
 
-(Important) In this scenario the traffic is routed via the existing vNet Peering (the red line). It is not routed via the vWWan Hub in this scenario.
+(Important) In this scenario the traffic is routed via the existing vNet Peering (the red line). It is not routed via the vWWan Hub.
 
-Then it enters the vNet (2) and the data is processed by the firewall(3)
+Then it enters the vNet (2) and the data is processed by the firewall (3).
 
-(4)
-The traffic egresses to the internet via the firewall by traversing the Microsoft Global Network  in this case (Routing Preference: MGN) 
+(4) The traffic egresses to the internet via the firewall by traversing the Microsoft Global Network. (Routing Preference: MGN) 
+
+There are 2 routing options for internet destined traffic:
+
+MGN - Microsoft Global Network - Traffic will use the microsoft backbone until it exits over the microsoft network edge pop closest to the destination. (more costly)
+
+ISP - The traffic will leave microsoft premises by the next pop and travels to the destination via the public internet.
+(a bit less costly)
+
+https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/routing-preference-overview
 
 Cost breakdown for this scenario #1
 
@@ -152,8 +159,10 @@ Cost breakdown for this scenario #1
 4.| 69,28 € | Bandwidth Internet Egress "Rtn Preference: MGN"
 -- | **120,02** | Total Cost for 1TB (1024 GB)
 
-Find the scenario in the azure cost calculator here:
+💡 Find the scenario in the azure cost calculator here:
 https://azure.com/e/1b9ed1a4c96e42289291a7294144b27a
+
+💡 Summary: Traffic leaving the region or going to the internet is billed per GB. Intra-region traffic within Azure is also billed. Bandwidth costs depend on routing preference and target location.
 
 ## VM to a private endpoint enabled PaaS
 
@@ -162,13 +171,13 @@ A VM accesses a private endpoint enabled storage account (can be any private end
 # ![scenario2](scenario2-network-costs.drawio.png)
 
 (1)
-The traffic is routed through the vHub vNet-Link  to the vHub.
+The traffic traverses the vNet-Link peering to the vHub.
 (2)
 The vHub processes (routes) the traffic.
 (3) 
-The traffic leaves the vHub to the Ressource via the vNet Link Peering.
+The traffic leaves the vHub to the Ressource via the vNet  -Link Peering.
 (4) 
-The request then reaches the network interface of the private Link enabled PaaS.
+The requests then reach the network interface of the private Link enabled PaaS.
 
 Cost Breakdown for Scenario #2
 
@@ -180,7 +189,10 @@ Cost Breakdown for Scenario #2
 4.| 9,06 € | private Endpoint processing costs (inbound) 
 -- | **63,42** | Total Cost for 1TB (1024 GB)
 
+💡 Find the scenario in the azure cost calculator here:
 https://azure.com/e/320ede77328a46f0a0c5c3ac19c1a350
+
+💡 Summary: Traffic going to private endpoint enabled services generates additional processing costs. It is billed per GB.
 
 ## On-Premises VM to an Azure VM that is in the backend pool of a load balancer in another region
 
@@ -194,34 +206,43 @@ A VM on premises accesses a service that  is provided by VMs that are behind a  
 Note: It is likely though that the ISP provising the link for the ExpressRoute will charge traffic fees.
 
 (2)
-The traffic is then routed through the regional vHub where it gets processed which incurs costs.
+The traffic is then processed (routed) by the source regional vHub which incurs costs.
 
 (3) The traffic is routed to the vWan Hub in the destination region through the microsoft 
 backbone which is billed accordingly.
 
 (4)
+The traffic is then processed (routed) by the source regional vHub which incurs costs.
+
+(5)
 The ingressing traffic is billed again in the destination vNet in which the lb and the vm reside.
 
-(5) finally the standard loadbalancer will process the traffic according to the configured
+(6) finally the standard loadbalancer will process the traffic according to the configured
 loadbalancing rules which generates costs.
 
 
 |Waypoint | Amount billed| Cost description
 ------------|-----------|-------|
 1.| 0,00 € | ingress trafic enetering Azure free, might be subject to Internet provider billing
-2.| 18,12 € | vHub Processing
+2.| 18,12 € | vHub Processing (EU Region-1)
 3.| 18,03 € | Bandwidth Inter Region, Intra Continent Data Transfer Out
-4.| 9,06 € | vNet Link Peering Ingress
-5.|  4,53 € | LB, SKU Standard Data Processed
--- | **49,74** | Total Cost for 1TB 
+4.| 18,12 € | vHub Processing (EU Region-2)
+5.| 18,12 € | vNet Peering Ingress
+6.|  4,53 € | LB, SKU Standard Data Processed
+-- | **76,92** | Total Cost for 1 TB 
+
+💡 Find the scenario in the azure cost calculator here:
+https://azure.com/e/dd02313770d444eda1722aa3b6662d6f
+
+💡 Summary: Traffic between two regions inside a virtual wan casuses bandwidth costs. Also processing costs for the virtual wan hubs in the regions are billed.
+
 
 ## Conclusion
 
-🔄 Place components that are needed to provide a service (e.g. frontend application gateway, vm, database)  in one vNet. There will be significantly less network induced costs than when they are all distributed in different vNets or even regions.
+🔄 Analyze if  resources that provide a service (e.g. frontend application gateway, vm, database) can be placed in one vNet. There will be significantly less network induced costs than when they are all distributed in different vNets or even regions.
 
-
-🔄 The use of a virtual WAN can reduce costs as it combines a hub and spoke architecture with a full mesh. 
-Since it has a centralized management it can reduce the complexity and amount of resources deployed in order to maintain such a design manually.
+🔄 The management of a meshed hub and spoke network architecture can be complex and costly. A virtualWan
+offers a centrally managed full mesh hub and spoke architecture out of the box. These two costs must be compared.
 
 -> 🔄 It makes sense to evaluate different network designs with a focus on costs. 
 
@@ -233,7 +254,7 @@ Minimize Data Transfer Costs:
 
 ⚠️  Do not overprovision infrastructure components as virtual wan hubs, express routes or application gateways.
 
-💸 When Load testing your applications do  consider to not to route the traffic through your azure firewall each time. As it might be feasible to test the interplay of all components once it is
+💸 When Load testing your applications do  consider to not route the traffic through your azure firewall each time. As it might be feasible to test the interplay of all components once it is
 most likely not required to route the load testing traffic through the firewall each time as it can generate significant costs.
 
 ## Annex 
